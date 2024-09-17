@@ -73,6 +73,17 @@ function balls.draw()
   for n=#balls, 1, -1 do
     local ball = balls[n]
 
+    if ball == balls.white then
+      if  ball.vx == 0 and ball.vy == 0 then
+        local mx, my = love.mouse.getPosition()
+        local angle = math.angle(mx,my, ball.x,ball.y)
+        local dist = math.max(1,Cue.power) * ball.w
+        love.graphics.setColor(0.15,0.8,0.3,0.8)
+        love.graphics.line(ball.x, ball.y, ball.x+(math.cos(angle)*dist), ball.y+(math.sin(angle)*dist) )
+        love.graphics.setColor(1,1,1,1)
+      end
+    end
+
     -- show image
     love.graphics.draw(ball.img.data, ball.x, ball.y, ball.rotate, ball.sx, ball.sy, ball.img.ox, ball.img.oy)
 
@@ -90,17 +101,7 @@ function balls.draw()
 
     end
 
-    if ball == balls.white then
-      local vx, vy = ball.body:getLinearVelocity()
-      if  vx == 0 and vy == 0 then
-        local x,y = ball.body:getPosition()
-        local mx, my = love.mouse.getPosition()
-        local angle = math.angle(mx,my, x,y)
-        love.graphics.line( x, y, x+(math.cos(angle)*600), y+(math.sin(angle)*600) )
-      end
-    end
-
-end
+  end
 end
 --
 

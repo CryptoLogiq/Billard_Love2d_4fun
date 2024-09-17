@@ -1,4 +1,4 @@
-local tablepot = {debug=false}
+local tablepot = {debug=true}
 
 local polygons = {pos={}, max=8}
 
@@ -41,6 +41,7 @@ function tablepot.load()
   tablepot.decX = (Screen.w - tablepot.w) / 2
   tablepot.decY = (Screen.h - tablepot.h) / 2
 
+  -- bords du plateau
   tablepot.newPollyCollider(132,84,     846,84,     833,115,    164,115)
   tablepot.newPollyCollider(932,84,     1654,84,    1622,115,   946,115)
 
@@ -49,6 +50,10 @@ function tablepot.load()
 
   tablepot.newPollyCollider(134,931,    848,931,    834,900,    166,900)
   tablepot.newPollyCollider(932,931,    1653, 931,  1621,900,   946,900)
+
+  -- poches
+  tablepot.newCircleCollider(Screen.ox, Screen.oy, 50)
+
 end
 --
 
@@ -60,10 +65,16 @@ function tablepot.draw()
   love.graphics.draw(tablepot.img.data, Screen.ox, Screen.oy, 0, 1, 1, tablepot.img.ox, tablepot.img.oy)
   --
   if tablepot.debug then
+    love.graphics.setColor(0,1,1,1)
     for n=1, #tablepot do
       local collider = tablepot[n]
-      love.graphics.polygon("fill", collider.body:getWorldPoints(collider.shape:getPoints())) -- draw a "filled in" polygon
+      if collider.shape:getType() == "polygon" then
+        love.graphics.polygon("fill", collider.body:getWorldPoints(collider.shape:getPoints())) -- draw a "filled in" polygon
+      elseif collider.shape:getType() == "circle" then
+        love.graphics.circle("fill", collider.x,collider.y,collider.r) -- draw a "filled in" polygon
+      end
     end
+    love.graphics.setColor(1,1,1,1)
   end
 end
 --
