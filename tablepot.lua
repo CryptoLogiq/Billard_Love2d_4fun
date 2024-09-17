@@ -2,6 +2,8 @@ local tablepot = {debug=true}
 
 local polygons = {pos={}, max=8}
 
+local pockets = {}
+
 function tablepot.newPollyCollider(x1,y1, x2,y2, x3,y3, x4,y4)
   local new = {x1=x1,y1=y1, x2=x2,y2=y2, x3=x3,y3=y3, x4=x4,y4=y4}
   new.body = love.physics.newBody(World, tablepot.decX, tablepot.decY, "static") -- x,y from its center
@@ -13,10 +15,12 @@ end
 
 function tablepot.newCircleCollider(x, y, r)
   local new = {x=x, y=y, r=r}
-  new.body = love.physics.newBody(World, x, y, "static") -- x,y from its center
+  new.body = love.physics.newBody(World, x, y, "kinematic") -- x,y from its center
   new.shape = love.physics.newCircleShape(r) --make a rectangle
   new.fixture = love.physics.newFixture(new.body, new.shape) --attach shape to body
+  new.fixture:setSensor(true) -- ne reagit pas aux collisions, sers uniquement a detecté les collisions
   table.insert(tablepot, new)
+  table.insert(pockets, new)
 end
 --
 
@@ -58,6 +62,24 @@ end
 --
 
 function tablepot.update(dt)
+  for n=#pockets, 1, -1 do
+    local pocket = pockets[n]
+    for n=#Balls, 1, -1 do
+      local ball = Balls[n]
+      if pocket.body:isTouching(ball.body) then
+        if math.dist(pocket.x,pocket.y, ball.x,ball.y) <= ball.ox then
+          if ball == Balls.white then
+            ball.body:setLinearVelocity(0, 0) -- impulse
+            ball.body:setPosition(ball.xDef, ball.yDef) -- replace
+          else
+            ball.body:setLinearVelocity(0, 0) -- impulse
+            ball.body:setActive(false)
+            ball.body:setPosition(10,10)
+          end
+        end
+      end
+    end
+  end
 end
 --
 
@@ -65,12 +87,13 @@ function tablepot.draw()
   love.graphics.draw(tablepot.img.data, Screen.ox, Screen.oy, 0, 1, 1, tablepot.img.ox, tablepot.img.oy)
   --
   if tablepot.debug then
-    love.graphics.setColor(0,1,1,1)
     for n=1, #tablepot do
       local collider = tablepot[n]
       if collider.shape:getType() == "polygon" then
+        love.graphics.setColor(0,1,1,1)
         love.graphics.polygon("fill", collider.body:getWorldPoints(collider.shape:getPoints())) -- draw a "filled in" polygon
       elseif collider.shape:getType() == "circle" then
+        love.graphics.setColor(1,0,1,1)
         love.graphics.circle("fill", collider.x,collider.y,collider.r) -- draw a "filled in" polygon
       end
     end
