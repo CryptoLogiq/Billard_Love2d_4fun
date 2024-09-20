@@ -12,11 +12,15 @@ end
 --
 
 function cue.update(dt)
-  if ball.vx == 0 and ball.vy == 0 then
-    cue.guiIsVisible = true
-  else
-    cue.guiIsVisible = false
+  for n=1, #Balls do
+    local b = Balls[n]
+    if ball.vx ~= 0 and ball.vy ~= 0 then
+      cue.guiIsVisible = false
+      return false
+    end
   end
+  cue.guiIsVisible = true
+  return true
 end
 --
 
