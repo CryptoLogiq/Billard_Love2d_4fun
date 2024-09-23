@@ -12,12 +12,15 @@ function balls.new(x,y,imgNumber)
   ball.h = ball.img.h
   ball.ox = ball.img.ox
   ball.oy = ball.img.oy
+  ball.rayon = math.max(ball.ox, ball.oy)
+  ball.angle_visuel = 0 -- Angle visuel initial
+  ball.z_offset = 0 -- Déplacement en Z pour l'effet de profondeur
   --
   ball.body = love.physics.newBody(World, x or ball.x, y or ball.y, "dynamic") --place the body in the center of the world and make it dynamic, so it can move around
   ball.shape = love.physics.newCircleShape(ball.img.oy) --the ball's shape has a radius of 25.5
   ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1) -- Attach fixture to body and give it a density of 1.
   --
-  ball.fixture:setRestitution(0.5) -- let the ball bounce
+  ball.fixture:setRestitution(0.99) -- let the ball bounce
   ball.body:setLinearDamping(0.5) -- force loose when move
   --
   -- print( ball.body:getAngularDamping() ) -- 0 defaut
@@ -69,6 +72,15 @@ function balls.createAllsBalls()
 end
 --
 
+function balls.WhiteBallDraw(ball)
+  local mx, my = love.mouse.getPosition()
+  local angle = math.angle(mx,my, ball.x,ball.y)
+  local dist = math.max(1, Cue.power) * ( math.min(Cue.mode.speed, Cue.listMode[2].speed) / 5 )
+  love.graphics.setColor(Cue.mode.color)
+  love.graphics.line(ball.x, ball.y, ball.x+(math.cos(angle)*dist), ball.y+(math.sin(angle)*dist) )
+  love.graphics.setColor(1,1,1,1)
+end
+
 function balls.load()
   balls.createAllsBalls()
 end
@@ -78,20 +90,19 @@ function balls.update(dt)
   for n=#balls, 1, -1 do
     local ball = balls[n]
 
-    -- damping du tapis, arret plsu rapide des balls lentes
---    local vx, vy = ball.body:getLinearVelocity()
---    local newvx, newvy = vx, vy
---    if  vx ~= 0 and math.abs(vx) <= 1 then newvx = 0 end
---    if  vy ~= 0 and math.abs(vy) <= 1 then newvy = 0 end
---    if newvx ~= vx or newvy ~= vy then ball.body:setLinearVelocity(newvx, newvy) end
+    -- Obtenir la vitesse de la ball
+    local vx, vy = ball.body:getLinearVelocity() -- Si tu utilises Box2D
 
-    -- effet d'angle sur les balls
---    local effectangle = ball.body:getAngle()
---    local fx = math.cos(effectangle) * math.abs(newvx*0.1)
---    local fy = math.sin(effectangle) * math.abs(newvy*0.1)
---    if math.abs(fx) <= 1 then fx = 0 end
---    if math.abs(fy) <= 1 then fy = 0 end
---    if fx ~= 0 or fy ~= 0 then ball.body:applyForce( fx, fy ) end
+    -- Calculer la distance parcourue
+    local distance = math.sqrt(vx^2 + vy^2) * dt
+    local perimetre = 2 * math.pi * ball.rayon
+    local delta_angle = (distance / perimetre) * 2 * math.pi
+
+    -- Mettre à jour l'angle visuel
+    ball.angle_visuel = ball.angle_visuel + delta_angle
+
+    -- Simuler le mouvement en Z
+    ball.z_offset = 5 * math.sin(ball.angle_visuel) -- Ajuste la profondeur
 
 
     -- update get positions and rotate for drawing
@@ -108,12 +119,7 @@ function balls.draw()
     local ball = balls[n]
 
     if ball == balls.white and Cue.isVisible then
-      local mx, my = love.mouse.getPosition()
-      local angle = math.angle(mx,my, ball.x,ball.y)
-      local dist = math.max(1, Cue.power) * ( math.min(Cue.mode.speed, Cue.listMode[2].speed) / 5 )
-      love.graphics.setColor(Cue.mode.color)
-      love.graphics.line(ball.x, ball.y, ball.x+(math.cos(angle)*dist), ball.y+(math.sin(angle)*dist) )
-      love.graphics.setColor(1,1,1,1)
+      balls.WhiteBallDraw(ball)
     end
 
     -- show image
