@@ -36,7 +36,7 @@ function game.drawScore()
       --
       for n=1, #p.lstBalls do
         local ball = p.lstBalls[n]
-        love.graphics.draw(ball.img.data, x, y, 0, 1, 1, ball.img.ox, ball.img.oy)
+        love.graphics.draw(ball.image, x, y, 0, 1, 1, ball.ox, ball.oy)
         x = x + d
       end
       --

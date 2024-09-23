@@ -4,31 +4,36 @@ balls.imgs = {}
 
 
 function balls.new(x,y,imgNumber)
-  local ball = {rotate=0, x=x, y=y, sx=1, sy=1, scale=1, img=Images[imgNumber], vx=0, vy=0}
+  local ball = {rotate=0, x=x, y=y, sx=1, sy=1, scale=1, imgSource=Images[imgNumber], vx=0, vy=0}
   ball.xDef = ball.x
   ball.yDef = ball.y
-  ball.z = ball.x + ball.img.ox
-  ball.w = ball.img.w
-  ball.h = ball.img.h
-  ball.ox = ball.img.ox
-  ball.oy = ball.img.oy
+  --
+  ball.image = ball.imgSource.data
+  ball.w = ball.imgSource.w
+  ball.h = ball.imgSource.h
+  ball.ox = ball.imgSource.ox
+  ball.oy = ball.imgSource.oy
+  --
   ball.rayon = math.max(ball.ox, ball.oy)
   ball.angle_visuel = 0 -- Angle visuel initial
   ball.z_offset = 0 -- Déplacement en Z pour l'effet de profondeur
   --
   ball.body = love.physics.newBody(World, x or ball.x, y or ball.y, "dynamic") --place the body in the center of the world and make it dynamic, so it can move around
-  ball.shape = love.physics.newCircleShape(ball.img.oy) --the ball's shape has a radius of 25.5
-  ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1) -- Attach fixture to body and give it a density of 1.
+  ball.shape = love.physics.newCircleShape(ball.rayon) --the ball's shape has a radius of 25.5
+  ball.fixture = love.physics.newFixture(ball.body, ball.shape) -- Attach fixture to body and give it a density of 1.
   --
-  ball.fixture:setRestitution(0.99) -- let the ball bounce
-  ball.body:setLinearDamping(0.5) -- force loose when move
+  ball.fixture:setRestitution(0.75) -- let the ball bounce
+  ball.body:setLinearDamping(0.75) -- force loose when move
+
+  -- ball.body:getMass() -- environ 0.56
+  ball.body:setMass(1) -- environ 0.56
   --
   -- print( ball.body:getAngularDamping() ) -- 0 defaut
   -- print( ball.body:getInertia() ) -- 149 defaut
   -- print( ball.body:isFixedRotation() ) -- false defaut
 
-  ball.body:setAngularDamping(0.99)
---  ball.body:setInertia(300)
+  ball.body:setAngularDamping(0.5)
+  --ball.body:setInertia(300)
   ball.body:setAngle(love.math.random(math.rad(360)))
 
   --ball.body:setBullet(true) -- true = CCD / false = World:update defaut
@@ -75,7 +80,9 @@ end
 function balls.WhiteBallDraw(ball)
   local mx, my = love.mouse.getPosition()
   local angle = math.angle(mx,my, ball.x,ball.y)
-  local dist = math.max(1, Cue.power) * ( math.min(Cue.mode.speed, Cue.listMode[2].speed) / 5 )
+--  local dist = math.max(1, Cue.power) * ( math.min(Cue.mode.speed, Cue.listMode[2].speed) / 5 )
+  local contact = 0
+  local dist = 0
   love.graphics.setColor(Cue.mode.color)
   love.graphics.line(ball.x, ball.y, ball.x+(math.cos(angle)*dist), ball.y+(math.sin(angle)*dist) )
   love.graphics.setColor(1,1,1,1)
@@ -123,7 +130,32 @@ function balls.draw()
     end
 
     -- show image
-    love.graphics.draw(ball.img.data, ball.x, ball.y, ball.rotate, ball.sx, ball.sy, ball.img.ox, ball.img.oy)
+    love.graphics.draw(ball.image, ball.x, ball.y, ball.rotate, ball.sx, ball.sy, ball.ox, ball.oy)
+
+    -- ###################
+
+    -- Calculer l'offset pour simuler le mouvement
+    local x, y = ball.body:getPosition()
+
+    love.graphics.push()
+    love.graphics.translate(x, y) -- Déplacer à la position de la ball
+
+    -- Calculer l'offset pour simuler le mouvement
+    local offset = ball.rayon * math.sin(ball.angle_visuel) -- Ajuste ce facteur pour le mouvement
+
+    -- Dessiner la première moitié de la ball (gauche)
+    love.graphics.setScissor(-ball.ox + offset, -ball.oy, ball.ox, ball.h)
+    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié gauche
+
+    -- Dessiner la deuxième moitié de la ball (droite)
+    love.graphics.setScissor(-ball.ox - offset, -ball.oy, ball.ox, ball.h)
+    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié droite
+
+    -- Réinitialiser le scissor
+    love.graphics.setScissor()
+
+    love.graphics.pop()
+    -- ###################
 
     -- show reel position
     if balls.debug then
