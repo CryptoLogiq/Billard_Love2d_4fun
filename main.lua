@@ -10,9 +10,9 @@ function math.averageAngles(...)
   for i=1,select('#',...) do local a= select(i,...) x, y = x+math.cos(a), y+math.sin(a) end
   return math.atan2(y, x)
 end
+--
 
-Game = {debug=true}
-
+Game = require("game")
 Screen = require("screen")
 Images = require("images")
 WorldManager = require("worldmanager")
@@ -28,6 +28,10 @@ function love.load()
   Tablepot.load()
   Balls.load()
   Cue.load()
+  --
+  Game.load()
+  --
+  Game.newGame()
 end
 --
 
@@ -38,6 +42,8 @@ function love.update(dt)
   Tablepot.update(dt)
   Balls.update(dt)
   Cue.update(dt)
+  --
+  Game.update(dt)
 end
 --
 
@@ -49,9 +55,7 @@ function love.draw()
   Balls.draw()
   Cue.draw()
   --
-  if Game.debug then
-    love.graphics.print(love.timer.getFPS( ), 10, 10)
-  end
+  Game.draw()
 end
 --
 

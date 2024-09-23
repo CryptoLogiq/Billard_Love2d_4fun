@@ -13,16 +13,19 @@ table inferieur de 16,89%
 function WorldManager.newWorld(meter, xGravity, yGravity, sleep)
 
   local m = meter or 1
+  love.physics.setMeter(m)
+  --
   local xg = xGravity or 0
   local yg = yGravity or 0
   local s = sleep or true
-  love.physics.setMeter(m)
+  --
   World = love.physics.newWorld(xg*m, yg*m, s)
 end
 --
 
 function WorldManager.load()
-  WorldManager.newWorld(64)
+--  WorldManager.newWorld(64)
+  WorldManager.newWorld(60)
 end
 --
 

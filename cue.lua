@@ -1,48 +1,142 @@
-local cue = {power = 0, maxPower=10, speed=500, guiIsVisible = false}
+
+local cue = {debug=false, power = 0, maxPower=10, isVisible = false, mode=nil}
+cue.listMode = { 
+  { name="soft",    speed=100,   id=1,   color={0.15,0.8,0.3,0.8} } ,
+  { name="medium",  speed=300,  id=2,   color={0.3,0.15,0.8,0.8} } ,
+  { name="hard",    speed=900,  id=3,   color={0.8,0.15,0.3,0.8} }
+}
+--
+
+local texts = {}
 
 local ball = nil
 
-function cue.load()
-  if not Balls.white then
-    print("Cue need load after Balls lua")
-  else
-    ball = Balls.white
+function cue.loadTexts()
+  local font = love.graphics.getFont()
+  --
+  for n=1, #cue.listMode do
+    local mode = cue.listMode[n]
+    local txt = {}
+    txt.str= "POWER".."\n"..string.upper(mode.name)
+    txt.data = love.graphics.newText(font, "")
+    txt.data:addf(txt.str, 50, "center")
+    txt.w, txt.h = txt.data:getDimensions()
+    table.insert(texts, txt)
   end
 end
 --
 
-function cue.update(dt)
+function cue.setCueMode()
+  local id = cue.mode.id
+  id = id + 1
+  if id > #cue.listMode then id = 1 end
+  cue.mode = cue.listMode[id]
+end
+--
+
+function cue.resetCueMode()
+  cue.mode = cue.listMode[1]
+  --
+  cue.power = 0
+end
+--
+
+function cue.showGui()
   if ball.vx == 0 and ball.vy == 0 then
-    cue.guiIsVisible = true
+    cue.isVisible = true
   else
-    cue.guiIsVisible = false
+    cue.isVisible = false
   end
 end
 --
 
-function cue.draw()
-  if cue.guiIsVisible then
-    local x, y, w, h
-    w = 25
+function cue.drawPower()
+  if cue.isVisible then
+    local x, y, w, h, text, ox
+    w = 26
     h = 8
-    x = ball.x - 50
-    y = ball.y - ball.oy - ( ((h+1)*10) + 18 )
+    ox = w / 2
+    x = 100
+    y = 200
     --
-    love.graphics.print("Power", x, y)
-    y = y + 18
+    love.graphics.setColor(0,0,0,1)
+    love.graphics.rectangle("fill", x-26, y-2, 52, 30)
+    love.graphics.setColor(0.5,0.5,0.5,1)
+    love.graphics.rectangle("line", x-26, y-2, 52, 30)
+    local txt = texts[cue.mode.id]
+    love.graphics.setColor(cue.mode.color[1], cue.mode.color[2], cue.mode.color[3], 1)
+    love.graphics.draw(txt.data, x, y, 0, 1, 1, txt.w/2)
+    love.graphics.setColor(1,1,1,1)
+    --
+    y = y + 32
+    x = x - ox
     --
     for n=10, 1, -1 do
-      love.graphics.setColor(0.15,0.25,0.3,1)
+      love.graphics.setColor(0,0,0,1)
       love.graphics.rectangle("line", x, y, w, h)
       if n <= cue.power then
-        love.graphics.setColor(0.15,1,0.3,1)
-        love.graphics.rectangle("fill", x, y, w, h)
+        love.graphics.setColor(cue.mode.color[1], cue.mode.color[2], cue.mode.color[3], 1)
+      else
+        love.graphics.setColor(0.5,0.5,0.5,1)
       end
+      love.graphics.rectangle("fill", x+1, y+1, w-2, h-2)
       love.graphics.setColor(1,1,1,1)
       y=y+(h+1)
     end
     --
+
   end
+end
+--
+
+function cue.drawCue()
+  if cue.isVisible then
+    local mx, my = love.mouse.getPosition()
+    cue.angle = math.angle(mx,my, ball.x,ball.y)
+    local px = ball.x - ( (cue.img.ox + ball.ox + (cue.power*10)) * math.cos(cue.angle) )
+    local py = ball.y - ( (cue.img.ox + ball.ox + (cue.power*10)) * math.sin(cue.angle) )
+    love.graphics.draw(cue.img.data, px, py, cue.angle, 1, 1, cue.img.ox, cue.img.oy)
+    love.graphics.circle("fill", px, py, 10)
+  end
+end
+--
+
+function cue.shoot(x, y)
+  local radian = math.angle(x,y, ball.x,ball.y)
+  local arx = math.cos(radian)
+  local ary = math.sin(radian)
+  local force = cue.power * cue.mode.speed
+
+  --
+
+  --    ball.body:applyLinearImpulse(arx*force, ary*force) -- impulse
+  ball.body:setLinearVelocity(arx*force, ary*force) -- impulse
+  --ball.body:applyAngularImpulse(love.math.random(-6.0, 6.0))
+
+  --
+
+  cue.resetCueMode()
+end
+--
+
+function cue.load()
+  ball = Balls.white
+  --
+  cue.resetCueMode()
+  cue.img = Images.cue
+  --
+  cue.loadTexts()
+end
+--
+
+function cue.update(dt)
+  cue.showGui()
+end
+--
+
+function cue.draw()
+  cue.drawPower()
+  cue.drawCue()
 end
 --
 
@@ -51,21 +145,15 @@ end
 --
 
 function cue.mousepressed(x, y, button, isTouche, presses)
-  --
-  local ball = Balls.white
-  --
-  local radian = math.angle(x,y, ball.x,ball.y)
-  local arx = math.cos(radian)
-  local ary = math.sin(radian)
-  local force = cue.power * cue.speed
-  --
   if button == 1 and ball.vx == 0 and ball.vy == 0 then
-    ball.body:setLinearVelocity(arx*force, ary*force) -- impulse
-    ball.body:applyAngularImpulse(love.math.random(-6.0, 6.0))
-    cue.power = 0
-  elseif button == 2 then
+    cue.shoot(x, y)
+  elseif button == 2 and cue.debug then
     ball.body:setLinearVelocity(0, 0) -- impulse
     ball.body:setPosition(ball.xDef, ball.yDef) -- replace
+  end
+
+  if button == 2 and cue.isVisible then
+    cue.setCueMode()
   end
 
 end

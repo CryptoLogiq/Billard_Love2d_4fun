@@ -1,4 +1,4 @@
-local tablepot = {debug=true}
+local tablepot = {debug=false}
 
 local polygons = {pos={}, max=8}
 
@@ -13,24 +13,28 @@ function tablepot.newPollyCollider(x1,y1, x2,y2, x3,y3, x4,y4)
 end
 --
 
-function tablepot.newCircleCollider(x, y, r)
+function tablepot.newCircleCollider(x, y, r, sensor)
   local new = {x=x, y=y, r=r}
   new.body = love.physics.newBody(World, x, y, "kinematic") -- x,y from its center
   new.shape = love.physics.newCircleShape(r) --make a rectangle
   new.fixture = love.physics.newFixture(new.body, new.shape) --attach shape to body
-  new.fixture:setSensor(true) -- ne reagit pas aux collisions, sers uniquement a detecté les collisions
+  --
+  new.fixture:setSensor(sensor or false) -- ne reagit pas aux collisions, sers uniquement a detecté les collisions
   table.insert(tablepot, new)
   table.insert(pockets, new)
 end
 --
 
-function tablepot.newRectCollider(x, y, w, h)
+function tablepot.newRectCollider(x, y, w, h, sensor)
   local new = {x=x, y=y, w=w, h=h}
   new.ox = w/2
   new.oy = h/2
   new.body = love.physics.newBody(World, x, y, "static") -- x,y from its center
   new.shape = love.physics.newRectangleShape(w, h) --make a rectangle
   new.fixture = love.physics.newFixture(new.body, new.shape) --attach shape to body
+  --
+  new.fixture:setSensor(sensor or false)
+  --
   table.insert(tablepot, new)
 end
 --
@@ -56,7 +60,20 @@ function tablepot.load()
   tablepot.newPollyCollider(932,931,    1653, 931,  1621,900,   946,900)
 
   -- poches
-  tablepot.newCircleCollider(Screen.ox, Screen.oy, 50)
+  local x = 144
+  local y = 87
+  local w = 1618
+  local h = 830
+  local r = 45
+  local decY = r/2
+  tablepot.newCircleCollider(x,   y,      r,  true)
+  tablepot.newCircleCollider(x,   y + h,  r,  true)
+  --
+  tablepot.newCircleCollider(x+w,   y,      r,  true)
+  tablepot.newCircleCollider(x+w,   y + h,  r,  true)
+  --
+  tablepot.newCircleCollider(x+(w/2)-2,   y-decY,         r,  true)
+  tablepot.newCircleCollider(x+(w/2)-2,   y + h + decY,   r,  true)
 
 end
 --
@@ -74,7 +91,8 @@ function tablepot.update(dt)
           else
             ball.body:setLinearVelocity(0, 0) -- impulse
             ball.body:setActive(false)
-            ball.body:setPosition(10,10)
+            ball.body:setPosition(-100,-100)
+            table.insert(Game.players[Game.currentPlayer].lstBalls, ball)
           end
         end
       end
@@ -97,6 +115,7 @@ function tablepot.draw()
         love.graphics.circle("fill", collider.x,collider.y,collider.r) -- draw a "filled in" polygon
       end
     end
+    --
     love.graphics.setColor(1,1,1,1)
   end
 end
