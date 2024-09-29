@@ -22,8 +22,8 @@ function balls.new(x,y,imgNumber)
   ball.shape = love.physics.newCircleShape(ball.rayon) --the ball's shape has a radius of 25.5
   ball.fixture = love.physics.newFixture(ball.body, ball.shape) -- Attach fixture to body and give it a density of 1.
   --
-  ball.fixture:setRestitution(0.75) -- let the ball bounce
-  ball.body:setLinearDamping(0.75) -- force loose when move
+  ball.fixture:setRestitution(0.5) -- let the ball bounce
+  ball.body:setLinearDamping(0.5) -- force loose when move
 
   -- ball.body:getMass() -- environ 0.56
   ball.body:setMass(1) -- environ 0.56
@@ -132,30 +132,31 @@ function balls.draw()
     -- show image
     love.graphics.draw(ball.image, ball.x, ball.y, ball.rotate, ball.sx, ball.sy, ball.ox, ball.oy)
 
-    -- ###################
+--    -- ################### Roulement de la boule ###################
+--    -- WIP
 
-    -- Calculer l'offset pour simuler le mouvement
-    local x, y = ball.body:getPosition()
+--    -- Calculer l'offset pour simuler le mouvement
+--    local x, y = ball.body:getPosition()
 
-    love.graphics.push()
-    love.graphics.translate(x, y) -- Déplacer à la position de la ball
+--    love.graphics.push()
+--    love.graphics.translate(x, y) -- Déplacer à la position de la ball
 
-    -- Calculer l'offset pour simuler le mouvement
-    local offset = ball.rayon * math.sin(ball.angle_visuel) -- Ajuste ce facteur pour le mouvement
+--    -- Calculer l'offset pour simuler le mouvement
+--    local offset = ball.rayon * math.sin(ball.angle_visuel) -- Ajuste ce facteur pour le mouvement
 
-    -- Dessiner la première moitié de la ball (gauche)
-    love.graphics.setScissor(-ball.ox + offset, -ball.oy, ball.ox, ball.h)
-    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié gauche
+--    -- Dessiner la première moitié de la ball (gauche)
+--    love.graphics.setScissor(-ball.ox + offset, -ball.oy, ball.ox, ball.h)
+--    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié gauche
 
-    -- Dessiner la deuxième moitié de la ball (droite)
-    love.graphics.setScissor(-ball.ox - offset, -ball.oy, ball.ox, ball.h)
-    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié droite
+--    -- Dessiner la deuxième moitié de la ball (droite)
+--    love.graphics.setScissor(-ball.ox - offset, -ball.oy, ball.ox, ball.h)
+--    love.graphics.draw(ball.image, 0, 0, 0, 1, 1, 0, 0) -- Dessiner la moitié droite
 
-    -- Réinitialiser le scissor
-    love.graphics.setScissor()
+--    -- Réinitialiser le scissor
+--    love.graphics.setScissor()
 
-    love.graphics.pop()
-    -- ###################
+--    love.graphics.pop()
+--    -- ################### -- Fin -- ###################
 
     -- show reel position
     if balls.debug then

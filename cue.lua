@@ -1,9 +1,9 @@
 
 local cue = {debug=false, power = 0, maxPower=10, isVisible = false, mode=nil}
 cue.listMode = { 
-  { name="soft",    speed=100,   id=1,   color={0.15,0.8,0.3,0.8} } ,
-  { name="medium",  speed=300,  id=2,   color={0.3,0.15,0.8,0.8} } ,
-  { name="hard",    speed=900,  id=3,   color={0.8,0.15,0.3,0.8} }
+  { name="soft",    speed=200,   id=1,   color={0.15,0.8,0.3,0.8} } ,
+  { name="medium",  speed=800,  id=2,   color={0.3,0.15,0.8,0.8} } ,
+  { name="hard",    speed=1600,  id=3,   color={0.8,0.15,0.3,0.8} }
 }
 --
 
